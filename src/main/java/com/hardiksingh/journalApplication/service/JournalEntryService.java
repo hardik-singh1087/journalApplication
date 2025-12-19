@@ -24,7 +24,7 @@ public class JournalEntryService {
 
     public JournalEntry saveEntry(JournalEntry journalEntry, String userName) {
         User user = userService.findByUserName(userName);
-        if(user==null){
+        if (user == null) {
             throw new RuntimeException("User not found: " + userName);
         }
         JournalEntry saved = journalEntryRepository.save(journalEntry);
@@ -41,7 +41,10 @@ public class JournalEntryService {
         return journalEntryRepository.findById(id);
     }
 
-    public void removeEntryById(ObjectId id) {
+    public void removeEntryById(ObjectId id, String userName) {
+        User user = userService.findByUserName(userName);
+        user.getJournalEntries().removeIf(entry -> entry.getId().equals(id));
+        userService.saveUser(user);
         journalEntryRepository.deleteById(id);
     }
 }

@@ -1,6 +1,7 @@
 package com.hardiksingh.journalApplication.controller;
 
 import com.hardiksingh.journalApplication.entity.JournalEntry;
+import com.hardiksingh.journalApplication.entity.User;
 import com.hardiksingh.journalApplication.service.JournalEntryService;
 import com.hardiksingh.journalApplication.service.UserService;
 import org.bson.types.ObjectId;
@@ -22,12 +23,24 @@ public class JournalEntryController {
     @Autowired
     private JournalEntryService journalEntryService;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping
     public ResponseEntity<?> getAll() {
         if (journalEntryService.getAllEntry() == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(journalEntryService.getAllEntry(), HttpStatus.OK);
+    }
+
+    @GetMapping("/{userName}")
+    public ResponseEntity<?> getAllJournalEntriesOfUser(@PathVariable String userName) {
+        User user = userService.findByUserName(userName);
+        if(user==null){
+            return new ResponseEntity<>("User not found: " + userName, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(user.getJournalEntries(), HttpStatus.OK);
     }
 
     @PostMapping("/{userName}")
@@ -39,10 +52,10 @@ public class JournalEntryController {
         }
     }
 
-    @GetMapping("/id/{myId}")
-    public ResponseEntity<?> getJournalEntryById(@PathVariable ObjectId myId) {
+    @GetMapping("/id/{jorunalId}")
+    public ResponseEntity<?> getJournalEntryById(@PathVariable ObjectId jorunalId) {
 
-        Optional<JournalEntry> entryById = journalEntryService.getEntryById(myId);
+        Optional<JournalEntry> entryById = journalEntryService.getEntryById(jorunalId);
         if (entryById.isPresent()) {
             return new ResponseEntity<>(entryById.get(), HttpStatus.OK);
         }
@@ -51,23 +64,23 @@ public class JournalEntryController {
         //Optional is just a case which can return or not return an object, so we have to write an orElse condition.
     }
 
-    @DeleteMapping("/id/{myId}")
-    public ResponseEntity<?> deleteJournalEntryById(@PathVariable ObjectId myId) {
-        Optional<JournalEntry> entryById = journalEntryService.getEntryById(myId);
-        journalEntryService.removeEntryById(myId);
-        if (entryById.isPresent()) {
-            return new ResponseEntity<>(entryById.get(), HttpStatus.NO_CONTENT);
+    @DeleteMapping("/id/{userName}/{journalId}")
+    public ResponseEntity<?> deleteJournalEntryById(@PathVariable ObjectId journalId, @PathVariable String userName) {
+        Optional<JournalEntry> journalEntry = journalEntryService.getEntryById(journalId);
+        journalEntryService.removeEntryById(journalId, userName);
+        if (journalEntry.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PutMapping("id/{myId}/{userName}")
+    @PutMapping("id/{journalId}/{userName}")
     public ResponseEntity<?> updateJournalEntryById(
-            @PathVariable ObjectId myId,
+            @PathVariable ObjectId journalId,
             @RequestBody JournalEntry newEntry,
             @PathVariable String userName
     ) {
-        JournalEntry entry = journalEntryService.getEntryById(myId).orElse(null);
+        JournalEntry entry = journalEntryService.getEntryById(journalId).orElse(null);
         if (entry != null) {
             entry.setTitle(newEntry.getTitle());
             if (newEntry.getContent() != null) entry.setContent(newEntry.getContent());
