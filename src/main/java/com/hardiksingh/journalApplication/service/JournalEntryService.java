@@ -1,12 +1,13 @@
 package com.hardiksingh.journalApplication.service;
 
 import com.hardiksingh.journalApplication.entity.JournalEntry;
+import com.hardiksingh.journalApplication.entity.User;
 import com.hardiksingh.journalApplication.repository.JournalEntryRepository;
+import com.hardiksingh.journalApplication.repository.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,11 +15,22 @@ import java.util.Optional;
 
 @Service
 public class JournalEntryService {
+
     @Autowired
     private JournalEntryRepository journalEntryRepository;
 
-    public JournalEntry saveEntry(JournalEntry journalEntry) {
-        return journalEntryRepository.save(journalEntry);
+    @Autowired
+    private UserService userService;
+
+    public JournalEntry saveEntry(JournalEntry journalEntry, String userName) {
+        User user = userService.findByUserName(userName);
+        if(user==null){
+            throw new RuntimeException("User not found: " + userName);
+        }
+        JournalEntry saved = journalEntryRepository.save(journalEntry);
+        user.getJournalEntries().add(saved);
+        userService.saveUser(user);
+        return saved;
     }
 
     public List<JournalEntry> getAllEntry() {
