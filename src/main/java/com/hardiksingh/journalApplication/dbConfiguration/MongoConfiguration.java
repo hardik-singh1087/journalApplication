@@ -1,19 +1,26 @@
 package com.hardiksingh.journalApplication.dbConfiguration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
+@EnableTransactionManagement
 public class MongoConfiguration {
+
+    @Value("${spring.data.mongodb.uri}")
+    private String mongoUri;
 
     @Bean
     public MongoDatabaseFactory mongoDatabaseFactory() {
-        return new SimpleMongoClientDatabaseFactory(
-                "mongodb://localhost:27017/journalDB"
-        );
+        // Now it pulls from the property/environment variable
+        return new SimpleMongoClientDatabaseFactory(mongoUri);
     }
 
     @Bean
@@ -23,4 +30,10 @@ public class MongoConfiguration {
         mappingContext.setAutoIndexCreation(true);
         return mappingContext;
     }
+
+    @Bean
+    public PlatformTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
+        return new MongoTransactionManager(dbFactory);
+    }
+
 }

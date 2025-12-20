@@ -52,10 +52,10 @@ public class JournalEntryController {
         }
     }
 
-    @GetMapping("/id/{jorunalId}")
-    public ResponseEntity<?> getJournalEntryById(@PathVariable ObjectId jorunalId) {
+    @GetMapping("/id/{journalId}")
+    public ResponseEntity<?> getJournalEntryById(@PathVariable ObjectId journalId) {
 
-        Optional<JournalEntry> entryById = journalEntryService.getEntryById(jorunalId);
+        Optional<JournalEntry> entryById = journalEntryService.getEntryById(journalId);
         if (entryById.isPresent()) {
             return new ResponseEntity<>(entryById.get(), HttpStatus.OK);
         }
@@ -74,7 +74,7 @@ public class JournalEntryController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PutMapping("id/{journalId}/{userName}")
+    @PutMapping("id/{userName}/{journalId}")
     public ResponseEntity<?> updateJournalEntryById(
             @PathVariable ObjectId journalId,
             @RequestBody JournalEntry newEntry,
