@@ -4,7 +4,6 @@ import com.hardiksingh.journalApplication.entity.User;
 import com.hardiksingh.journalApplication.repository.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,11 +22,8 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User saveUser(User user) {
-        return userRepository.save(user);
-    }
 
-    public User saveNewUser(User user) {
+    public User saveUser(User user) {
         user.setPassword(requireNonNull(passwordEncoder.encode(user.getPassword())));
         user.setRoles(List.of("USER"));
         return userRepository.save(user);
@@ -43,6 +39,9 @@ public class UserService {
 
     public void removeEntryById(ObjectId id) {
         userRepository.deleteById(id);
+    }
+    public User deleteByUserName(String userName) {
+        return userRepository.deleteByUserName(userName);
     }
 
     public User findByUserName(@RequestBody String userName) {
