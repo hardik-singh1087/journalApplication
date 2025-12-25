@@ -22,8 +22,15 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
+    //You must have two distinct methods: one that encodes (for new users)
+    // and one that simply saves (for internal updates like adding journals).
     public User saveUser(User user) {
+        //this requires no hashing
+        return userRepository.save(user);
+    }
+    //this for creating new user
+    //this hash the password
+    public User saveNewUser(User user) {
         user.setPassword(requireNonNull(passwordEncoder.encode(user.getPassword())));
         user.setRoles(List.of("USER"));
         return userRepository.save(user);
@@ -44,7 +51,7 @@ public class UserService {
         return userRepository.deleteByUserName(userName);
     }
 
-    public User findByUserName(@RequestBody String userName) {
+    public User findByUserName(String userName) {
         return userRepository.findByUserName(userName);
     }
 }
