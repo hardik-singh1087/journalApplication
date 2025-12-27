@@ -20,8 +20,10 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request -> request
+                        .requestMatchers("/home/**","/public/**").permitAll()
                         .requestMatchers("/journal/**", "/user/**").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/admin/**").hasAllRoles("ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())

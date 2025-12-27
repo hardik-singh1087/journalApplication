@@ -2,6 +2,7 @@ package com.hardiksingh.journalApplication.controller;
 
 import com.hardiksingh.journalApplication.entity.User;
 import com.hardiksingh.journalApplication.service.UserService;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,12 +41,17 @@ public class UserController {
         return userService.saveNewUser(userInDB);
     }
 
-    @DeleteMapping()
-    public User removeUser(@RequestBody User newUser) {
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> removeUser(@PathVariable ObjectId userId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
-        User userInDB = userService.findByUserName(userName);
 
-        return userService.saveUser(userInDB);
+        try {
+            userService.deleteUser(userName, userId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

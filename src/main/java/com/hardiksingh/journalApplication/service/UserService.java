@@ -1,14 +1,17 @@
 package com.hardiksingh.journalApplication.service;
 
+import com.hardiksingh.journalApplication.entity.JournalEntry;
 import com.hardiksingh.journalApplication.entity.User;
+import com.hardiksingh.journalApplication.repository.JournalEntryRepository;
 import com.hardiksingh.journalApplication.repository.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -20,6 +23,9 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private JournalEntryRepository journalEntryRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     //You must have two distinct methods: one that encodes (for new users)
@@ -28,12 +34,19 @@ public class UserService {
         //this requires no hashing
         return userRepository.save(user);
     }
+
     //this for creating new user
     //this hash the password
     public User saveNewUser(User user) {
         user.setPassword(requireNonNull(passwordEncoder.encode(user.getPassword())));
         user.setRoles(List.of("USER"));
         return userRepository.save(user);
+    }
+
+    public User saveAdmin(User admin) {
+        admin.setPassword(requireNonNull(passwordEncoder.encode(admin.getPassword())));
+        admin.setRoles(List.of("USER", "ADMIN"));
+        return userRepository.save(admin);
     }
 
     public List<User> getAllUsers() {
@@ -44,11 +57,18 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public void removeEntryById(ObjectId id) {
-        userRepository.deleteById(id);
-    }
-    public User deleteByUserName(String userName) {
-        return userRepository.deleteByUserName(userName);
+    @Transactional
+    public User deleteUser(String userName, ObjectId userId) {
+        User user = userRepository.findByUserName(userName);
+        List<JournalEntry> journalEntries = user.getJournalEntries();
+
+        if (Objects.equals(user.getUserId(), userId)) {
+            for (JournalEntry journalEntry : journalEntries) {
+                journalEntryRepository.deleteById(journalEntry.getId());
+            }
+            return userRepository.deleteByUserName(userName);
+        }
+        throw new RuntimeException("userName or userId is incorrect");
     }
 
     public User findByUserName(String userName) {
